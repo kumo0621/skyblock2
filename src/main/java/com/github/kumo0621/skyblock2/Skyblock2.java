@@ -2,9 +2,11 @@ package com.github.kumo0621.skyblock2;
 import com.earth2me.essentials.api.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -178,6 +180,22 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "このコマンドはプレイヤーのみが使用できます。");
             }
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("warp") && sender instanceof Player) {
+            Player player = (Player) sender;
+            FileConfiguration config = this.getConfig();
+            String role = config.getString("roles." + player.getUniqueId().toString());
+
+            // 役職に応じたロケーションを取得
+            if (role != null && config.contains("roles." + role)) {
+                int x = config.getInt("roles." + role + ".x");
+                int y = config.getInt("roles." + role + ".y");
+                int z = config.getInt("roles." + role + ".z");
+
+                Location loc = new Location(getServer().getWorld("world"), x, y, z);
+                player.teleport(loc);
+            } else {
+                player.sendMessage("あなたの役職にはテレポート地点が設定されていません。");
+            }
         }
         return false;
     }
@@ -257,9 +275,25 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
     }
     private void removeOneItemOfType(Player player, Material itemType) {
-        // インベントリから特定の種類のアイテムを1つ減らす
-        player.getInventory().removeItem(new ItemStack(itemType, 1));
+        ItemStack[] items = player.getInventory().getContents();
+
+        for (int i = 0; i < items.length; i++) {
+            ItemStack item = items[i];
+            if (item != null && item.getType() == itemType) {
+                int amount = item.getAmount();
+
+                if (amount > 1) {
+                    // アイテムの数量が1より多い場合、数量を1減らす
+                    item.setAmount(amount - 1);
+                } else {
+                    // アイテムの数量が1の場合、そのスロットからアイテムを削除
+                    player.getInventory().setItem(i, null);
+                }
+                break; // 最初に見つかったアイテムを処理したらループを終了
+            }
+        }
     }
+
     private int getPriceFromLore(java.util.List<String> lore) {
         if (lore != null && !lore.isEmpty()) {
             String priceLine = lore.get(0); // "価格: XXX 円" の形式を想定
