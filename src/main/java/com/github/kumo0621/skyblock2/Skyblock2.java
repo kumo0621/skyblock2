@@ -64,28 +64,22 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         if (role != null) {
             switch (role) {
                 case "石工":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 1));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 1).withParticles(false));
                     break;
                 case "商人":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
                     break;
                 case "冒険者":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 1));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 1).withParticles(false));
                     break;
                 case "漁師":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
                     break;
                 case "鍛冶屋":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
                     break;
                 case "電気工事士":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1200, 4));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1200, 4).withParticles(false));
                     break;
                 case "パン屋":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
                     break;
             }
         }
