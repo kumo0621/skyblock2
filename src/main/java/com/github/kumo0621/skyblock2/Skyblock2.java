@@ -63,7 +63,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     }
 
     private void applyRoleEffects(Player player) {
-        String role = this.getConfig().getString("roles." + player.getUniqueId().toString());
+        String role = this.getConfig().getString("players." + player.getUniqueId().toString());
         if (role != null) {
             switch (role) {
                 case "石工":
@@ -103,7 +103,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String role = this.getConfig().getString("roles." + player.getUniqueId().toString());
+        String role = this.getConfig().getString("players." + player.getUniqueId().toString());
         if (role != null && board.getTeam(role) != null) {
             // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
             Team team = board.getTeam(role);
@@ -123,7 +123,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             Player player = (Player) sender;
 
             // コンフィグに役職が存在しない場合のみ処理を続ける
-            if (!this.getConfig().contains("roles." + player.getUniqueId().toString())) {
+            if (!this.getConfig().contains("players." + player.getUniqueId().toString())) {
                 if (args.length == 1) {
                     String role = args[0];
                     if (setRole(player, role)) {
@@ -146,7 +146,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 Inventory shopInventory = Bukkit.createInventory(null, 9, "Shop");
-                String role = this.getConfig().getString("roles." + player.getUniqueId().toString());
+                String role = this.getConfig().getString("players." + player.getUniqueId().toString());
                 // プレイヤーの役職に基づいてアイテムを設定
                 if (role != null) {
                     switch (role) {
@@ -185,7 +185,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("warp") && sender instanceof Player) {
             Player player = (Player) sender;
             FileConfiguration config = this.getConfig();
-            String role = config.getString("roles." + player.getUniqueId().toString());
+            String role = config.getString("players." + player.getUniqueId().toString());
 
             // 役職に応じたロケーションを取得
             if (role != null && config.contains("roles." + role)) {
@@ -307,7 +307,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         if (board.getTeam(role) != null) {
             board.getTeam(role).addEntry(player.getName());
             player.setScoreboard(board);
-            this.getConfig().set("roles." + player.getUniqueId().toString(), role);
+            this.getConfig().set("players." + player.getUniqueId().toString(), role);
             this.saveConfig();
             return true;
         }
