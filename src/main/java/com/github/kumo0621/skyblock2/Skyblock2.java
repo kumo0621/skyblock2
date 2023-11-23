@@ -110,7 +110,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             ItemMeta meta = compass.getItemMeta();
 
             // ここでコンパスに名前を設定します
-            meta.setDisplayName("右クリックで職業所にテレポート");
+            meta.setDisplayName("右クリックでテレポート (しゃがみ右クリックで残高確認");
             compass.setItemMeta(meta);
 
             // プレイヤーにコンパスを与えます
@@ -236,10 +236,17 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         // プレイヤーが右クリックしたかつ手にコンパスを持ってwいるか確認
-        if (event.getAction().isRightClick() && player.getInventory().getItemInMainHand().getType() == Material.COMPASS) {
-            // コンパスを右クリックしたときの処理
-            player.performCommand("warp");
+        if (player.getInventory().getItemInMainHand().getType() == Material.COMPASS) {
+            if (event.getAction().isRightClick()) {
+                if (player.isSneaking()) {
+                    // コンパスをしゃがみ右クリックしたときの処理
+                    player.sendMessage(ChatColor.GREEN + "あなたの残高は↓です。");
+                    player.performCommand("money");
+                } else {
+                    // コンパスを右クリックしたときの処理
+                    player.performCommand("warp");
+                }
+            }
         }
     }
-
 }
