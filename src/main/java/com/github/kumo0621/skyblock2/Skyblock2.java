@@ -137,7 +137,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             String role = config.getString("players." + player.getUniqueId().toString());
 
             // 役職に応じたロケーションを取得
-            if (role != null && config.contains("roles." + role)) {
+            if (role == null) {
+                role = "無職";
+            }
+            if (config.contains("roles." + role)) {
                 int x = config.getInt("roles." + role + ".x");
                 int y = config.getInt("roles." + role + ".y");
                 int z = config.getInt("roles." + role + ".z");
