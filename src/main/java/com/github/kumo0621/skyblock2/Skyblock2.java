@@ -1,6 +1,9 @@
 package com.github.kumo0621.skyblock2;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -11,7 +14,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -197,9 +199,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
     /**
      * コマンド実行者とコマンドの引数から、対象のプレイヤーを取得する
+     *
      * @param sender コマンド実行者
-     * @param args コマンドの引数
-     * @param index 引数の中でプレイヤー名を指定する位置
+     * @param args   コマンドの引数
+     * @param index  引数の中でプレイヤー名を指定する位置
      * @return 対象のプレイヤーのリスト
      */
     private static List<Player> getTargetPlayer(CommandSender sender, String[] args, int index) {
@@ -235,11 +238,12 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
         return false;
     }
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        // プレイヤーが右クリックしたかつ手にコンパスを持っているか確認
-        if (event.getAction().toString().contains("RIGHT_CLICK")) {
+        // プレイヤーが右クリックしたかつ手にコンパスを持ってwいるか確認
+        if (event.getAction().isRightClick() && player.getInventory().getItemInMainHand().getType() == Material.COMPASS) {
             // コンパスを右クリックしたときの処理
             player.performCommand("warp");
         }
