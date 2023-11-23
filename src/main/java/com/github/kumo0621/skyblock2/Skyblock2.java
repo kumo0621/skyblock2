@@ -108,9 +108,8 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             team.addEntry(player.getName());
             player.setScoreboard(board);
         } else if (!player.hasPlayedBefore()) {
-            // 新規プレイヤーの場合、役職選択のメッセージを表示
-            player.sendMessage(ChatColor.AQUA + "役職を選んでください。利用可能な役職: 石工, 商人, 漁師, 冒険者, 鍛冶屋, 電気工事士, パン屋");
-            player.sendMessage(ChatColor.GREEN + "コマンドを使用して役職を選択: /setrole <役職名>");
+            // 新規プレイヤーの場合、職業選択のメッセージを表示
+            player.sendMessage(ChatColor.GREEN + "コンパスを右クリックして職業を選択しよう！");
         }
         if (!hasCompass(player)) {
             ItemStack compass = new ItemStack(Material.COMPASS);
