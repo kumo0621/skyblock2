@@ -1,15 +1,17 @@
 package com.github.kumo0621.skyblock2;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -97,6 +99,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String role = this.getConfig().getString("players." + player.getUniqueId().toString());
+        player.getInventory();
         if (role != null && board.getTeam(role) != null) {
             // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
             Team team = board.getTeam(role);
@@ -107,8 +110,29 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             player.sendMessage(ChatColor.AQUA + "役職を選んでください。利用可能な役職: 石工, 商人, 漁師, 冒険者, 鍛冶屋, 電気工事士, パン屋");
             player.sendMessage(ChatColor.GREEN + "コマンドを使用して役職を選択: /setrole <役職名>");
         }
+        if (!hasCompass(player)) {
+            ItemStack compass = new ItemStack(Material.COMPASS);
+            ItemMeta meta = compass.getItemMeta();
+
+            // ここでコンパスに名前を設定します
+            meta.setDisplayName("右クリックで職業所にテレポート");
+            compass.setItemMeta(meta);
+
+            // プレイヤーにコンパスを与えます
+            player.getInventory().addItem(compass);
+        }
     }
 
+    private boolean hasCompass(Player player) {
+        // インベントリ内のアイテムを確認し、コンパスが存在するかどうかを返します
+        ItemStack[] items = player.getInventory().getContents();
+        for (ItemStack item : items) {
+            if (item != null && item.getType() == Material.COMPASS) {
+                return true; // インベントリにコンパスが見つかった場合は true を返す
+            }
+        }
+        return false; // インベントリにコンパスが見つからなかった場合は false を返す
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -211,4 +235,14 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
         return false;
     }
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        // プレイヤーが右クリックしたかつ手にコンパスを持っているか確認
+        if (event.getAction().toString().contains("RIGHT_CLICK")) {
+            // コンパスを右クリックしたときの処理
+            player.performCommand("warp");
+        }
+    }
+
 }
