@@ -17,6 +17,10 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public final class Skyblock2 extends JavaPlugin implements Listener {
 
     private ScoreboardManager manager;
@@ -108,50 +112,93 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("setrole") && sender instanceof Player) {
-            Player player = (Player) sender;
+        // 役職設定コマンドの処理
+        if (cmd.getName().equalsIgnoreCase("setrole")) {
+            // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
+            List<Player> players = getTargetPlayer(sender, args, 1);
+            if (players == null) return false;
 
             // コンフィグに役職が存在しない場合のみ処理を続ける
-            if (!this.getConfig().contains("players." + player.getUniqueId().toString())) {
-                if (args.length == 1) {
-                    String role = args[0];
-                    if (setRole(player, role)) {
-                        player.sendMessage(ChatColor.GREEN + "役職が設定されました: " + role);
-                        return true;
+            for (Player player : players) {
+                if (!this.getConfig().contains("players." + player.getUniqueId().toString()) || sender.hasPermission("skyblock2.admin")) {
+                    if (args.length >= 1) {
+                        String role = args[0];
+                        if (setRole(player, role)) {
+                            player.sendMessage(ChatColor.GREEN + "役職が設定されました: " + role);
+                            return true;
+                        } else {
+                            player.sendMessage(ChatColor.RED + "無効な役職です。");
+                            return false;
+                        }
                     } else {
-                        player.sendMessage(ChatColor.RED + "無効な役職です。");
+                        player.sendMessage(ChatColor.RED + "使用方法: /setrole <役職名>");
                         return false;
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "使用方法: /setrole <役職名>");
-                    return false;
+                    player.sendMessage(ChatColor.RED + "あなたは既に役職を持っています。");
+                    return true;
                 }
-            } else {
-                player.sendMessage(ChatColor.RED + "あなたは既に役職を持っています。");
-                return true;
             }
         }
+
+        // テレポートコマンドの処理
         if (cmd.getName().equalsIgnoreCase("warp") && sender instanceof Player) {
-            Player player = (Player) sender;
+            // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
+            List<Player> players = getTargetPlayer(sender, args, 0);
+            if (players == null) return false;
+
             FileConfiguration config = this.getConfig();
-            String role = config.getString("players." + player.getUniqueId().toString());
 
-            // 役職に応じたロケーションを取得
-            if (role == null) {
-                role = "無職";
-            }
-            if (config.contains("roles." + role)) {
-                int x = config.getInt("roles." + role + ".x");
-                int y = config.getInt("roles." + role + ".y");
-                int z = config.getInt("roles." + role + ".z");
+            for (Player player : players) {
+                // 役職に応じたロケーションを取得
+                String role = config.getString("players." + player.getUniqueId().toString());
+                if (role == null) {
+                    role = "無職";
+                }
+                if (config.contains("roles." + role)) {
+                    int x = config.getInt("roles." + role + ".x");
+                    int y = config.getInt("roles." + role + ".y");
+                    int z = config.getInt("roles." + role + ".z");
 
-                Location loc = new Location(getServer().getWorld("world"), x, y, z);
-                player.teleport(loc);
-            } else {
-                player.sendMessage("あなたの役職にはテレポート地点が設定されていません。");
+                    Location loc = new Location(getServer().getWorld("world"), x, y, z);
+                    player.teleport(loc);
+                } else {
+                    player.sendMessage("あなたの役職にはテレポート地点が設定されていません。");
+                }
             }
         }
+
         return false;
+    }
+
+    /**
+     * コマンド実行者とコマンドの引数から、対象のプレイヤーを取得する
+     * @param sender コマンド実行者
+     * @param args コマンドの引数
+     * @param index 引数の中でプレイヤー名を指定する位置
+     * @return 対象のプレイヤーのリスト
+     */
+    private static List<Player> getTargetPlayer(CommandSender sender, String[] args, int index) {
+        if (args.length > index) {
+            // senderに権限があるかチェック
+            if (!sender.hasPermission("skyblock2.admin")) {
+                sender.sendMessage(ChatColor.RED + "他のプレイヤーのコマンドを実行する権限がありません。");
+                return null;
+            }
+
+            // @pとか指定があればそれを使用
+            return Bukkit.getServer().selectEntities(sender, args[index]).stream()
+                    .filter(entity -> entity instanceof Player)
+                    .map(entity -> (Player) entity)
+                    .collect(Collectors.toList());
+        } else if (sender instanceof Player) {
+            // なければコマンド実行者を使用
+            return Collections.singletonList((Player) sender);
+        } else {
+            // それもなければエラー
+            sender.sendMessage(ChatColor.RED + "プレイヤー名を指定してください。");
+            return null;
+        }
     }
 
     public boolean setRole(Player player, String role) {
