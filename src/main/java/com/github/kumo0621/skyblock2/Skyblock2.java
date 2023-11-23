@@ -74,6 +74,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     break;
                 case "冒険者":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 1));
                     break;
                 case "漁師":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
@@ -84,6 +85,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     break;
                 case "電気工事士":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1200, 4));
                     break;
                 case "パン屋":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 1));
