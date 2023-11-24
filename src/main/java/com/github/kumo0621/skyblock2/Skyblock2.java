@@ -76,11 +76,12 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         if (role != null) {
             switch (role) {
                 case "石工":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 1).withParticles(false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 3).withParticles(false));
                     break;
                 case "商人":
                     break;
                 case "冒険者":
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 1).withParticles(false));
                     player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 1).withParticles(false));
                     break;
                 case "漁師":
