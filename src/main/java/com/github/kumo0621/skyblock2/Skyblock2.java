@@ -34,9 +34,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     public void onEnable() {
         // スコアボードマネージャーとボードの初期化
         manager = Bukkit.getScoreboardManager();
-        board = manager.getNewScoreboard();
+        board = manager.getMainScoreboard();
 
         // 役職に対応するチームを作成
+        createTeam("ニート", ChatColor.DARK_GRAY);
         createTeam("石工", ChatColor.GOLD);
         createTeam("商人", ChatColor.DARK_PURPLE);
         createTeam("冒険者", ChatColor.GREEN);
@@ -57,6 +58,17 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 }
             }
         }, 0L, 20L * 60); // 20 ticks * 60 = 1分ごと
+
+        // 全員をチームに追加
+        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+            // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
+            String role = this.getConfig().getString("players." + player.getUniqueId().toString());
+            if (role == null) {
+                role = "ニート";
+            }
+            Team team = board.getTeam(role);
+            team.addEntry(player.getName());
+        }
     }
 
     private void applyRoleEffects(Player player) {
@@ -86,7 +98,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     }
 
     private void createTeam(String name, ChatColor color) {
-        Team team = board.registerNewTeam(name);
+        Team team = board.getTeam(name);
+        if (team == null) {
+            team = board.registerNewTeam(name);
+        }
         team.setPrefix(color + "[" + name + "] ");
         team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
     }
@@ -94,13 +109,15 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String role = this.getConfig().getString("players." + player.getUniqueId().toString());
         player.getInventory();
-        if (role != null && board.getTeam(role) != null) {
+        String role = this.getConfig().getString("players." + player.getUniqueId().toString());
+        if (role == null) {
+            role = "ニート";
+        }
+        Team team = board.getTeam(role);
+        if (team != null) {
             // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
-            Team team = board.getTeam(role);
             team.addEntry(player.getName());
-            player.setScoreboard(board);
         } else if (!player.hasPlayedBefore()) {
             // 新規プレイヤーの場合、職業選択のメッセージを表示
             player.sendMessage(ChatColor.GREEN + "コンパスを右クリックして職業を選択しよう！");
