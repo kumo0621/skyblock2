@@ -1,5 +1,6 @@
 package com.github.kumo0621.skyblock2;
 
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -10,10 +11,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -21,6 +24,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +33,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
     private ScoreboardManager manager;
     private Scoreboard board;
+    private Economy econ;
 
     @Override
     public void onEnable() {
@@ -47,6 +52,13 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         createTeam("パン屋", ChatColor.LIGHT_PURPLE);
         // コンフィグファイルの読み込み
         this.saveDefaultConfig();
+
+        // Vaultの初期化
+        if (!setupEconomy() ) {
+            getLogger().severe("Vaultが見つかりませんでした。");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // イベントリスナーの登録
         getServer().getPluginManager().registerEvents(this, this);
@@ -69,6 +81,18 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             Team team = board.getTeam(role);
             team.addEntry(player.getName());
         }
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return true;
     }
 
     private void applyRoleEffects(Player player) {
@@ -257,14 +281,29 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         if (player.getInventory().getItemInMainHand().getType() == Material.COMPASS) {
             if (event.getAction().isRightClick()) {
                 if (player.isSneaking()) {
+                    // VaultAPIで残高を取得
+                    double balance = econ.getBalance(player);
+                    String currency = econ.currencyNamePlural();
+
                     // コンパスをしゃがみ右クリックしたときの処理
-                    player.sendMessage(ChatColor.GREEN + "あなたの残高は↓です。");
-                    player.performCommand("money");
+                    player.sendMessage(String.format(ChatColor.GREEN + "あなたの残高は %s%s です。", currency, new DecimalFormat("#,###.##").format(balance)));
                 } else {
                     // コンパスを右クリックしたときの処理
                     player.performCommand("warp");
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+
+        // ￥200徴収
+        if (econ.withdrawPlayer(player, 200).transactionSuccess()) {
+            player.sendMessage(ChatColor.RED + "死亡により￥200徴収されました。");
+        } else {
+            player.sendMessage(ChatColor.RED + "死亡しましたが、お金が足りないため徴収されませんでした。");
         }
     }
 }
