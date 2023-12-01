@@ -44,7 +44,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         // 役職に対応するチームを作成
         createTeam("ニート", ChatColor.DARK_GRAY);
         createTeam("石工", ChatColor.GOLD);
-        createTeam("商人", ChatColor.DARK_PURPLE);
+        createTeam("裁縫師", ChatColor.DARK_PURPLE);
         createTeam("冒険者", ChatColor.GREEN);
         createTeam("漁師", ChatColor.YELLOW);
         createTeam("鍛冶屋", ChatColor.GRAY);
@@ -102,10 +102,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 case "石工":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 3).withParticles(false));
                     break;
-                case "商人":
+                case "裁縫師":
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 2).withParticles(false));
                     break;
                 case "冒険者":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 1).withParticles(false));
                     player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 1).withParticles(false));
                     break;
                 case "漁師":
@@ -300,8 +300,8 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         Player player = event.getEntity();
 
         // ￥200徴収
-        if (econ.withdrawPlayer(player, 200).transactionSuccess()) {
-            player.sendMessage(ChatColor.RED + "死亡により￥200徴収されました。");
+        if (econ.withdrawPlayer(player, 500).transactionSuccess()) {
+            player.sendMessage(ChatColor.RED + "死亡により￥500徴収されました。");
         } else {
             player.sendMessage(ChatColor.RED + "死亡しましたが、お金が足りないため徴収されませんでした。");
         }
