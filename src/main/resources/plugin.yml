@@ -22,3 +22,19 @@ permissions:
     default: op
   skyblock2.command:
     default: true
+  skyblock2.ニート:
+    default: false
+  skyblock2.石工:
+    default: false
+  skyblock2.裁縫師:
+    default: false
+  skyblock2.冒険者:
+    default: false
+  skyblock2.漁師:
+    default: false
+  skyblock2.鍛冶屋:
+    default: false
+  skyblock2.電気工事士:
+    default: false
+  skyblock2.パン屋:
+    default: false
