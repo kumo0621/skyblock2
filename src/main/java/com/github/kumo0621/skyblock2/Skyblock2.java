@@ -1,5 +1,8 @@
 package com.github.kumo0621.skyblock2;
 
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.node.Node;
+import net.luckperms.api.node.types.InheritanceNode;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,6 +28,7 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,14 +38,26 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     private ScoreboardManager manager;
     private Scoreboard board;
     private Economy econ;
+    private LuckPerms luckPerms;
+    private List<String> teams;
 
     @Override
     public void onEnable() {
+        // LuckPermsの初期化
+        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        if (provider == null) {
+            getLogger().severe("LuckPermsが見つかりませんでした。");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        luckPerms = provider.getProvider();
+
         // スコアボードマネージャーとボードの初期化
         manager = Bukkit.getScoreboardManager();
         board = manager.getMainScoreboard();
 
         // 役職に対応するチームを作成
+        teams = new ArrayList<>();
         createTeam("ニート", ChatColor.DARK_GRAY);
         createTeam("石工", ChatColor.GOLD);
         createTeam("裁縫師", ChatColor.DARK_PURPLE);
@@ -54,7 +70,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         this.saveDefaultConfig();
 
         // Vaultの初期化
-        if (!setupEconomy() ) {
+        if (!setupEconomy()) {
             getLogger().severe("Vaultが見つかりませんでした。");
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -123,26 +139,40 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     }
 
     private void createTeam(String name, ChatColor color) {
+        // リストにチーム名を追加
+        teams.add(name);
+
+        // スコアボードにチームを作成
         Team team = board.getTeam(name);
         if (team == null) {
             team = board.registerNewTeam(name);
         }
         team.setPrefix(color + "[" + name + "] ");
         team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+
+        // 必要なLuckPermsグループがなければ作成
+        if (!luckPerms.getGroupManager().isLoaded(name)) {
+            luckPerms.getGroupManager().createAndLoadGroup(name).thenAccept(group -> {
+                // パーミッションを設定
+                group.data().add(Node.builder("skyblock2." + name).build());
+                // パーミッションを保存
+                luckPerms.getGroupManager().saveGroup(group);
+            });
+        }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         player.getInventory();
-        String role = this.getConfig().getString("players." + player.getUniqueId().toString());
-        if (role == null) {
-            role = "ニート";
-        }
+        String role = this.getConfig().getString("players." + player.getUniqueId().toString(), "ニート");
+
         Team team = board.getTeam(role);
         if (team != null) {
             // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
             team.addEntry(player.getName());
+            // パーミッショングループを設定
+            setGroup(player, role);
         } else if (!player.hasPlayedBefore()) {
             // 新規プレイヤーの場合、職業選択のメッセージを表示
             player.sendMessage(ChatColor.GREEN + "コンパスを右クリックして職業を選択しよう！");
@@ -267,11 +297,30 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         if (board.getTeam(role) != null) {
             board.getTeam(role).addEntry(player.getName());
             player.setScoreboard(board);
+            setGroup(player, role);
             this.getConfig().set("players." + player.getUniqueId().toString(), role);
             this.saveConfig();
             return true;
         }
         return false;
+    }
+
+    private void setGroup(Player player, String role) {
+        // プレイヤー情報を読み込み
+        luckPerms.getUserManager().loadUser(player.getUniqueId()).thenAccept(user -> {
+            // プレイヤーに役職のグループを付与
+            for (String groupName : teams) {
+                if (groupName.equals(role)) {
+                    // プレイヤーが所属しているグループに役職のグループを追加
+                    user.data().add(InheritanceNode.builder(groupName).value(true).build());
+                } else {
+                    // プレイヤーが所属しているグループ以外のグループを削除
+                    user.data().remove(InheritanceNode.builder(groupName).build());
+                }
+            }
+            // プレイヤー情報を保存
+            luckPerms.getUserManager().saveUser(user);
+        });
     }
 
     @EventHandler
