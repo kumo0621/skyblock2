@@ -64,7 +64,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         createTeam("冒険者", ChatColor.GREEN);
         createTeam("漁師", ChatColor.YELLOW);
         createTeam("鍛冶屋", ChatColor.GRAY);
-        createTeam("電気工事士", ChatColor.WHITE);
+        createTeam("薬剤師", ChatColor.WHITE);
         createTeam("パン屋", ChatColor.LIGHT_PURPLE);
         // コンフィグファイルの読み込み
         this.saveDefaultConfig();
@@ -122,17 +122,18 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 2).withParticles(false));
                     break;
                 case "冒険者":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 1).withParticles(false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 9).withParticles(false));
                     break;
                 case "漁師":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
                     break;
                 case "鍛冶屋":
                     break;
-                case "電気工事士":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1200, 4).withParticles(false));
+                case "薬剤師":
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1200, 4).withParticles(false));
                     break;
                 case "パン屋":
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
                     break;
             }
         }
@@ -349,8 +350,8 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         Player player = event.getEntity();
 
         // ￥200徴収
-        if (econ.withdrawPlayer(player, 500).transactionSuccess()) {
-            player.sendMessage(ChatColor.RED + "死亡により￥500徴収されました。");
+        if (econ.withdrawPlayer(player, 2000).transactionSuccess()) {
+            player.sendMessage(ChatColor.RED + "死亡により￥2000徴収されました。");
         } else {
             player.sendMessage(ChatColor.RED + "死亡しましたが、お金が足りないため徴収されませんでした。");
         }
