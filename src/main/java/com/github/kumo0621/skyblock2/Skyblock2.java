@@ -130,7 +130,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 case "鍛冶屋":
                     break;
                 case "薬剤師":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1200, 4).withParticles(false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1200, 0).withParticles(false));
                     break;
                 case "パン屋":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
