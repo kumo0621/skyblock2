@@ -252,7 +252,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     int y = config.getInt("roles." + role + ".y");
                     int z = config.getInt("roles." + role + ".z");
 
-                    Location loc = new Location(getServer().getWorld("world"), x, y, z);
+                    Location loc = new Location(getServer().getWorld("world_the_end"), x, y, z);
                     player.teleport(loc);
                 } else {
                     player.sendMessage("あなたの役職にはテレポート地点が設定されていません。");
