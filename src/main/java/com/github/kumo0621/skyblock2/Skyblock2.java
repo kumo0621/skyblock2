@@ -122,7 +122,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 2).withParticles(false));
                     break;
                 case "冒険者":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 9).withParticles(false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 0).withParticles(false));
                     break;
                 case "漁師":
                     player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
@@ -133,7 +133,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1200, 0).withParticles(false));
                     break;
                 case "パン屋":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1200, 2).withParticles(false));
                     break;
             }
         }
@@ -245,7 +245,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 // 役職に応じたロケーションを取得
                 String role = config.getString("players." + player.getUniqueId().toString());
                 if (role == null) {
-                    role = "無職";
+                    role = "ニート";
                 }
                 if (config.contains("roles." + role)) {
                     int x = config.getInt("roles." + role + ".x");
