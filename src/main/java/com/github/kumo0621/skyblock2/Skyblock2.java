@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,7 +23,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
@@ -31,6 +31,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class Skyblock2 extends JavaPlugin implements Listener {
@@ -40,6 +41,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     private Economy econ;
     private LuckPerms luckPerms;
     private List<String> teams;
+    private Team neetTeam;
 
     @Override
     public void onEnable() {
@@ -52,22 +54,26 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
         luckPerms = provider.getProvider();
 
+        // コンフィグファイルの読み込み
+        this.saveDefaultConfig();
+        FileConfiguration config = getConfig();
+        // イベントリスナーの登録
+        getServer().getPluginManager().registerEvents(this, this);
+
         // スコアボードマネージャーとボードの初期化
         manager = Bukkit.getScoreboardManager();
         board = manager.getMainScoreboard();
 
-        // 役職に対応するチームを作成
+        // 職業に対応するチームを作成
         teams = new ArrayList<>();
-        createTeam("ニート", ChatColor.DARK_GRAY);
-        createTeam("石工", ChatColor.GOLD);
-        createTeam("裁縫師", ChatColor.DARK_PURPLE);
-        createTeam("冒険者", ChatColor.GREEN);
-        createTeam("漁師", ChatColor.YELLOW);
-        createTeam("鍛冶屋", ChatColor.GRAY);
-        createTeam("薬剤師", ChatColor.WHITE);
-        createTeam("パン屋", ChatColor.LIGHT_PURPLE);
-        // コンフィグファイルの読み込み
-        this.saveDefaultConfig();
+        ConfigurationSection roles = Objects.requireNonNull(config.getConfigurationSection("roles"));
+        for (String role : roles.getKeys(false)) {
+            createTeam(role, roles.getString(role + ".name"), ChatColor.valueOf(roles.getString(role + ".color")));
+        }
+
+        // 無職ロールを取得
+        String defaultRole = Objects.requireNonNull(config.getString("neetRole"), "無職ロールが設定されていません。");
+        neetTeam = Objects.requireNonNull(board.getTeam(defaultRole), "無職ロール(" + defaultRole + ")が見つかりませんでした。");
 
         // Vaultの初期化
         if (!setupEconomy()) {
@@ -76,8 +82,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             return;
         }
 
-        // イベントリスナーの登録
-        getServer().getPluginManager().registerEvents(this, this);
+        // 1分ごとに職業の効果を適用
         this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
             public void run() {
@@ -86,19 +91,13 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 }
             }
         }, 0L, 20L * 60); // 20 ticks * 60 = 1分ごと
-
-        // 全員をチームに追加
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
-            String role = this.getConfig().getString("players." + player.getUniqueId().toString());
-            if (role == null) {
-                role = "ニート";
-            }
-            Team team = board.getTeam(role);
-            team.addEntry(player.getName());
-        }
     }
 
+    /**
+     * Vaultの初期化
+     *
+     * @return 初期化に成功したかどうか
+     */
     private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
@@ -111,35 +110,36 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         return true;
     }
 
+    /**
+     * 職業の効果を適用
+     *
+     * @param player プレイヤー
+     */
     private void applyRoleEffects(Player player) {
-        String role = this.getConfig().getString("players." + player.getUniqueId().toString());
-        if (role != null) {
-            switch (role) {
-                case "石工":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 3).withParticles(false));
-                    break;
-                case "裁縫師":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 2).withParticles(false));
-                    break;
-                case "冒険者":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 0).withParticles(false));
-                    break;
-                case "漁師":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 1200, 2).withParticles(false));
-                    break;
-                case "鍛冶屋":
-                    break;
-                case "薬剤師":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1200, 0).withParticles(false));
-                    break;
-                case "パン屋":
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1200, 2).withParticles(false));
-                    break;
-            }
+        // コンフィグを取得
+        ConfigurationSection roles = Objects.requireNonNull(getConfig().getConfigurationSection("roles"));
+        // プレイヤーのチームを取得
+        Team team = board.getPlayerTeam(player);
+        if (team == null) return;
+
+        // チームに設定されているポーション効果を適用
+        List<?> potionEffects = roles.getList(team.getName() + ".potionEffects");
+        if (potionEffects == null) return;
+
+        // ポーション効果を適用
+        for (Object effect : potionEffects) {
+            if (!(effect instanceof PotionEffect)) continue;
+            player.addPotionEffect((PotionEffect) effect);
         }
     }
 
-    private void createTeam(String name, ChatColor color) {
+    /**
+     * 職業に対応するチームを作成
+     *
+     * @param name  チーム名
+     * @param color チームの色
+     */
+    private void createTeam(String name, String displayName, ChatColor color) {
         // リストにチーム名を追加
         teams.add(name);
 
@@ -148,8 +148,9 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         if (team == null) {
             team = board.registerNewTeam(name);
         }
-        team.setPrefix(color + "[" + name + "] ");
+        team.setPrefix(color + "[" + displayName + "] ");
         team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+        team.setDisplayName(displayName);
 
         // 必要なLuckPermsグループがなければ作成
         if (!luckPerms.getGroupManager().isLoaded(name)) {
@@ -165,19 +166,24 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        player.getInventory();
-        String role = this.getConfig().getString("players." + player.getUniqueId().toString(), "ニート");
+        Team team = board.getPlayerTeam(player);
 
-        Team team = board.getTeam(role);
-        if (team != null) {
-            // コンフィグから読み込んだ役職に基づき、プレイヤーを適切なチームに追加
+        // ロールが設定されていない場合、無職ロールを設定
+        if (team == null) {
+            team = neetTeam;
             team.addEntry(player.getName());
-            // パーミッショングループを設定
-            setGroup(player, role);
-        } else if (!player.hasPlayedBefore()) {
+        }
+
+        // LuckPermsのグループを設定
+        setGroup(player, team.getName());
+
+        // 新規プレイヤーの場合、職業選択のメッセージを表示
+        if (!player.hasPlayedBefore()) {
             // 新規プレイヤーの場合、職業選択のメッセージを表示
             player.sendMessage(ChatColor.GREEN + "コンパスを右クリックして職業を選択しよう！");
         }
+
+        // コンパスを持っていない場合、コンパスを与える
         if (!hasCompass(player)) {
             ItemStack compass = new ItemStack(Material.COMPASS);
             ItemMeta meta = compass.getItemMeta();
@@ -191,6 +197,12 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * プレイヤーがコンパスを持っているかどうかを確認します
+     *
+     * @param player プレイヤー
+     * @return コンパスを持っているかどうか
+     */
     private boolean hasCompass(Player player) {
         // インベントリ内のアイテムを確認し、コンパスが存在するかどうかを返します
         ItemStack[] items = player.getInventory().getContents();
@@ -204,30 +216,30 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        // 役職設定コマンドの処理
+        // 職業設定コマンドの処理
         if (cmd.getName().equalsIgnoreCase("setrole")) {
             // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
             List<Player> players = getTargetPlayer(sender, args, 1);
             if (players == null) return false;
 
-            // コンフィグに役職が存在しない場合のみ処理を続ける
+            // コンフィグに職業が存在しない場合のみ処理を続ける
             for (Player player : players) {
-                if (!this.getConfig().contains("players." + player.getUniqueId().toString()) || sender.hasPermission("skyblock2.admin")) {
+                if (neetTeam.hasPlayer(player) || sender.hasPermission("skyblock2.admin")) {
                     if (args.length >= 1) {
                         String role = args[0];
                         if (setRole(player, role)) {
-                            player.sendMessage(ChatColor.GREEN + "役職が設定されました: " + role);
+                            player.sendMessage(ChatColor.GREEN + "職業が設定されました: " + role);
                             return true;
                         } else {
-                            player.sendMessage(ChatColor.RED + "無効な役職です。");
+                            player.sendMessage(ChatColor.RED + "無効な職業です。");
                             return false;
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "使用方法: /setrole <役職名>");
+                        player.sendMessage(ChatColor.RED + "使用方法: /setrole <職業名>");
                         return false;
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "あなたは既に役職を持っています。");
+                    player.sendMessage(ChatColor.RED + "あなたは既に職業を持っています。");
                     return true;
                 }
             }
@@ -242,20 +254,24 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             FileConfiguration config = this.getConfig();
 
             for (Player player : players) {
-                // 役職に応じたロケーションを取得
-                String role = config.getString("players." + player.getUniqueId().toString());
+                // 職業に応じたロケーションを取得
+                String role = config.getString("players." + player.getUniqueId());
                 if (role == null) {
                     role = "ニート";
                 }
-                if (config.contains("roles." + role)) {
-                    int x = config.getInt("roles." + role + ".x");
-                    int y = config.getInt("roles." + role + ".y");
-                    int z = config.getInt("roles." + role + ".z");
+                // テレポート地点を取得
+                ConfigurationSection home = config.getConfigurationSection("roles." + role + ".home");
+                if (home != null) {
+                    int x = home.getInt("x");
+                    int y = home.getInt("y");
+                    int z = home.getInt("z");
 
-                    Location loc = new Location(getServer().getWorld("world_the_end"), x, y, z);
+                    // ロケーションを作成し、プレイヤーをテレポート
+                    String world = home.getString("world");
+                    Location loc = new Location(getServer().getWorld(world), x, y, z);
                     player.teleport(loc);
                 } else {
-                    player.sendMessage("あなたの役職にはテレポート地点が設定されていません。");
+                    player.sendMessage("あなたの職業にはテレポート地点が設定されていません。");
                 }
             }
         }
@@ -294,25 +310,41 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * プレイヤーに職業を設定する (チームに追加する)
+     *
+     * @param player プレイヤー
+     * @param role   職業
+     * @return 設定に成功したかどうか
+     */
     public boolean setRole(Player player, String role) {
-        if (board.getTeam(role) != null) {
-            board.getTeam(role).addEntry(player.getName());
-            player.setScoreboard(board);
+        // 引数の文字列のチームを取得
+        Team team = board.getTeam(role);
+        // チームが存在すればプレイヤーを追加
+        if (team != null) {
+            team.addEntry(player.getName());
+
+            // LuckPermsのグループを設定
             setGroup(player, role);
-            this.getConfig().set("players." + player.getUniqueId().toString(), role);
-            this.saveConfig();
+
             return true;
         }
         return false;
     }
 
+    /**
+     * LuckPermsのグループを設定
+     *
+     * @param player プレイヤー
+     * @param role   職業
+     */
     private void setGroup(Player player, String role) {
         // プレイヤー情報を読み込み
         luckPerms.getUserManager().loadUser(player.getUniqueId()).thenAccept(user -> {
-            // プレイヤーに役職のグループを付与
+            // プレイヤーに職業のグループを付与
             for (String groupName : teams) {
                 if (groupName.equals(role)) {
-                    // プレイヤーが所属しているグループに役職のグループを追加
+                    // プレイヤーが所属しているグループに職業のグループを追加
                     user.data().add(InheritanceNode.builder(groupName).value(true).build());
                 } else {
                     // プレイヤーが所属しているグループ以外のグループを削除
@@ -349,9 +381,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
-        // ￥200徴収
-        if (econ.withdrawPlayer(player, 2000).transactionSuccess()) {
-            player.sendMessage(ChatColor.RED + "死亡により￥2000徴収されました。");
+        // 罰金徴収
+        int penalty = getConfig().getInt("deathPenalty");
+        if (econ.withdrawPlayer(player, penalty).transactionSuccess()) {
+            player.sendMessage(ChatColor.RED + "死亡により￥" + penalty + "徴収されました。");
         } else {
             player.sendMessage(ChatColor.RED + "死亡しましたが、お金が足りないため徴収されませんでした。");
         }

@@ -1,34 +1,115 @@
+deathPenalty: 2000
+neetRole: ニート
 roles:
-  無職:
-    x: 0
-    y: 0
-    z: 0
-  商人:
-    x: 0
-    y: 0
-    z: 0
+  ニート:
+    name: ニート
+    home:
+      world: world_the_end
+      x: 262
+      y: 103
+      z: 94
+    color: DARK_GRAY
   漁師:
-    x: 0
-    y: 0
-    z: 0
+    name: 漁師
+    home:
+      world: world_the_end
+      x: 298
+      y: 158
+      z: 12
+    color: YELLOW
+    potionEffects:
+      - ==: PotionEffect
+        effect: 26
+        duration: 1200
+        amplifier: 2
+        ambient: true
+        has-particles: false
+        has-icon: true
   パン屋:
-    x: 0
-    y: 0
-    z: 0
-  電気工事士:
-    x: 0
-    y: 0
-    z: 0
+    name: パン屋
+    home:
+      world: world_the_end
+      x: 298
+      y: 158
+      z: -6
+    color: LIGHT_PURPLE
+    potionEffects:
+      - ==: PotionEffect
+        effect: 8
+        duration: 1200
+        amplifier: 2
+        ambient: true
+        has-particles: false
+        has-icon: true
   冒険者:
-    x: 0
-    y: 0
-    z: 0
+    name: 冒険者
+    home:
+      world: world_the_end
+      x: 298
+      y: 158
+      z: 48
+    color: GREEN
+    potionEffects:
+      - ==: PotionEffect
+        effect: 5
+        duration: 1200
+        amplifier: 0
+        ambient: true
+        has-particles: false
+        has-icon: true
   石工:
-    x: 0
-    y: 0
-    z: 0
+    name: 石工
+    home:
+      world: world_the_end
+      x: 288
+      y: 158
+      z: 39
+    color: GOLD
+    potionEffects:
+      - ==: PotionEffect
+        effect: 3
+        duration: 1200
+        amplifier: 3
+        ambient: true
+        has-particles: false
+        has-icon: true
   鍛冶屋:
-    x: 0
-    y: 0
-    z: 0
-
+    name: 鍛冶屋
+    home:
+      world: world_the_end
+      x: 298
+      y: 158
+      z: 30
+    color: GRAY
+  裁縫師:
+    name: 裁縫師
+    home:
+      world: world_the_end
+      x: 298
+      y: 158
+      z: 30
+    color: DARK_PURPLE
+    potionEffects:
+      - ==: PotionEffect
+        effect: 1
+        duration: 1200
+        amplifier: 2
+        ambient: true
+        has-particles: false
+        has-icon: true
+  薬剤師:
+    name: 薬剤師
+    home:
+      world: world_the_end
+      x: 298
+      y: 158
+      z: 30
+    color: WHITE
+    potionEffects:
+      - ==: PotionEffect
+        effect: 11
+        duration: 1200
+        amplifier: 0
+        ambient: true
+        has-particles: false
+        has-icon: true
