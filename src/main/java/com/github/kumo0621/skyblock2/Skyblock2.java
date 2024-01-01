@@ -255,16 +255,20 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
             for (Player player : players) {
                 // 職業に応じたロケーションを取得
-                String role = config.getString("players." + player.getUniqueId().toString());
+                String role = config.getString("players." + player.getUniqueId());
                 if (role == null) {
                     role = "ニート";
                 }
-                if (config.contains("roles." + role)) {
-                    int x = config.getInt("roles." + role + ".x");
-                    int y = config.getInt("roles." + role + ".y");
-                    int z = config.getInt("roles." + role + ".z");
+                // テレポート地点を取得
+                ConfigurationSection home = config.getConfigurationSection("roles." + role + ".home");
+                if (home != null) {
+                    int x = home.getInt("x");
+                    int y = home.getInt("y");
+                    int z = home.getInt("z");
 
-                    Location loc = new Location(getServer().getWorld("world_the_end"), x, y, z);
+                    // ロケーションを作成し、プレイヤーをテレポート
+                    String world = home.getString("world");
+                    Location loc = new Location(getServer().getWorld(world), x, y, z);
                     player.teleport(loc);
                 } else {
                     player.sendMessage("あなたの職業にはテレポート地点が設定されていません。");
