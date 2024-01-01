@@ -255,10 +255,10 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
             for (Player player : players) {
                 // 職業に応じたロケーションを取得
-                String role = config.getString("players." + player.getUniqueId());
-                if (role == null) {
-                    role = "ニート";
-                }
+                Team team = board.getPlayerTeam(player);
+                if (team == null) team = neetTeam;
+                String role = team.getName();
+
                 // テレポート地点を取得
                 ConfigurationSection home = config.getConfigurationSection("roles." + role + ".home");
                 if (home != null) {
