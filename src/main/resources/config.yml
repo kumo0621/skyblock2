@@ -1,6 +1,7 @@
 deathPenalty: 2000
 defaultRole: tutorial
 neetRole: ニート
+notion: '{"text":"[クリックして説明書(Notion)を確認]","color":"gold","clickEvent":{"action":"open_url","value":"https://bit.ly/eco-tutorial"}}'
 roles:
   tutorial:
     name: チュートリアル

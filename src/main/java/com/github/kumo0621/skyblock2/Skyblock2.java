@@ -1,5 +1,7 @@
 package com.github.kumo0621.skyblock2;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.ComponentSerializer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
@@ -188,7 +190,11 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             ItemMeta meta = compass.getItemMeta();
 
             // ここでコンパスに名前を設定します
-            meta.setDisplayName("右クリックでテレポート (しゃがみ右クリックで残高確認");
+            meta.setDisplayName("右クリックでテレポート");
+            meta.setLore(Arrays.asList(
+                    "しゃがみ右クリックで残高を確認",
+                    "しゃがみ左クリックでNotionを確認"
+            ));
             compass.setItemMeta(meta);
 
             // プレイヤーにコンパスを与えます
@@ -273,6 +279,11 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     player.sendMessage("あなたの職業にはテレポート地点が設定されていません。");
                 }
             }
+        }
+
+        // Notionコマンドの処理
+        if (cmd.getName().equalsIgnoreCase("notion") && sender instanceof Player) {
+            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + sender.getName() + " " + getConfig().getString("notion"));
         }
 
         return false;
@@ -371,6 +382,11 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 } else {
                     // コンパスを右クリックしたときの処理
                     player.performCommand("warp");
+                }
+            } else if (event.getAction().isLeftClick()) {
+                if (player.isSneaking()) {
+                    // コンパスをしゃがみ左クリックしたときの処理
+                    player.performCommand("notion");
                 }
             }
         }

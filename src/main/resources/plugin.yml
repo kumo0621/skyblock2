@@ -9,19 +9,23 @@ depend:
 
 commands:
   setrole:
-    aliases: skyblock2.command
     permission: skyblock2.setrole
   warp:
-    aliases: skyblock2.command
-    permission: skyblock2.command
+    permission: skyblock2.warp
+  notion:
+    permission: skyblock2.notion
 
 permissions:
   skyblock2.admin:
     default: op
   skyblock2.setrole:
     default: op
-  skyblock2.command:
+  skyblock2.warp:
     default: true
+  skyblock2.notion:
+    default: true
+  skyblock2.tutorial:
+    default: false
   skyblock2.ニート:
     default: false
   skyblock2.石工:
