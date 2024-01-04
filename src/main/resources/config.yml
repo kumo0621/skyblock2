@@ -1,6 +1,15 @@
 deathPenalty: 2000
+defaultRole: tutorial
 neetRole: ニート
 roles:
+  tutorial:
+    name: チュートリアル
+    home:
+      world: world_the_end
+      x: 145
+      y: 155
+      z: -237
+    color: AQUA
   ニート:
     name: ニート
     home:
@@ -87,7 +96,7 @@ roles:
       world: world_the_end
       x: 298
       y: 158
-      z: 30
+      z: 21
     color: DARK_PURPLE
     potionEffects:
       - ==: PotionEffect
@@ -103,7 +112,7 @@ roles:
       world: world_the_end
       x: 298
       y: 158
-      z: 30
+      z: 3
     color: WHITE
     potionEffects:
       - ==: PotionEffect

@@ -28,10 +28,7 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Skyblock2 extends JavaPlugin implements Listener {
@@ -41,6 +38,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     private Economy econ;
     private LuckPerms luckPerms;
     private List<String> teams;
+    private Team defaultTeam;
     private Team neetTeam;
 
     @Override
@@ -71,9 +69,13 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             createTeam(role, roles.getString(role + ".name"), ChatColor.valueOf(roles.getString(role + ".color")));
         }
 
-        // 無職ロールを取得
-        String defaultRole = Objects.requireNonNull(config.getString("neetRole"), "無職ロールが設定されていません。");
-        neetTeam = Objects.requireNonNull(board.getTeam(defaultRole), "無職ロール(" + defaultRole + ")が見つかりませんでした。");
+        // デフォルトロールを取得
+        String defaultRole = Objects.requireNonNull(config.getString("defaultRole"), "デフォルトロールが設定されていません。");
+        defaultTeam = Objects.requireNonNull(board.getTeam(defaultRole), "デフォルトロール(" + defaultRole + ")が見つかりませんでした。");
+
+        // ニートロールを取得
+        String neetRole = Objects.requireNonNull(config.getString("neetRole"), "ニートロールが設定されていません。");
+        neetTeam = Objects.requireNonNull(board.getTeam(neetRole), "ニートロール(" + neetRole + ")が見つかりませんでした。");
 
         // Vaultの初期化
         if (!setupEconomy()) {
@@ -170,18 +172,15 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
 
         // ロールが設定されていない場合、無職ロールを設定
         if (team == null) {
-            team = neetTeam;
+            team = defaultTeam;
             team.addEntry(player.getName());
+
+            // チュートリアル地点にテレポートする
+            player.performCommand("warp");
         }
 
         // LuckPermsのグループを設定
         setGroup(player, team.getName());
-
-        // 新規プレイヤーの場合、職業選択のメッセージを表示
-        if (!player.hasPlayedBefore()) {
-            // 新規プレイヤーの場合、職業選択のメッセージを表示
-            player.sendMessage(ChatColor.GREEN + "コンパスを右クリックして職業を選択しよう！");
-        }
 
         // コンパスを持っていない場合、コンパスを与える
         if (!hasCompass(player)) {
