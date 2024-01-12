@@ -2,6 +2,7 @@ deathPenalty: 2000
 defaultRole: tutorial
 neetRole: ニート
 notion: '{"text":"[クリックして説明書(Notion)を確認]","color":"gold","clickEvent":{"action":"open_url","value":"https://bit.ly/eco-tutorial"}}'
+maxRole: 2
 roles:
   tutorial:
     name: チュートリアル
@@ -23,7 +24,7 @@ roles:
     name: 漁師
     home:
       world: world_the_end
-      x: 298
+      x: 296
       y: 158
       z: 12
     color: YELLOW
@@ -41,7 +42,7 @@ roles:
       world: world_the_end
       x: 298
       y: 158
-      z: -6
+      z: -15
     color: LIGHT_PURPLE
     potionEffects:
       - ==: PotionEffect
@@ -57,7 +58,7 @@ roles:
       world: world_the_end
       x: 298
       y: 158
-      z: 48
+      z: -15
     color: GREEN
     potionEffects:
       - ==: PotionEffect
@@ -71,9 +72,9 @@ roles:
     name: 魔法使い
     home:
       world: world_the_end
-      x: 288
+      x: 298
       y: 158
-      z: 39
+      z: -15
     color: GOLD
     potionEffects:
       - ==: PotionEffect
@@ -87,7 +88,7 @@ roles:
     name: 鍛冶屋
     home:
       world: world_the_end
-      x: 298
+      x: 296
       y: 158
       z: 30
     color: GRAY
@@ -95,7 +96,7 @@ roles:
     name: 裁縫師
     home:
       world: world_the_end
-      x: 298
+      x: 297
       y: 158
       z: 21
     color: DARK_PURPLE
@@ -113,7 +114,7 @@ roles:
       world: world_the_end
       x: 298
       y: 158
-      z: 3
+      z: -15
     color: WHITE
     potionEffects:
       - ==: PotionEffect
