@@ -28,17 +28,17 @@ permissions:
     default: false
   skyblock2.ニート:
     default: false
-  skyblock2.石工:
+  skyblock2.魔法使い:
     default: false
   skyblock2.裁縫師:
     default: false
-  skyblock2.冒険者:
+  skyblock2.剣士:
     default: false
   skyblock2.漁師:
     default: false
   skyblock2.鍛冶屋:
     default: false
-  skyblock2.電気工事士:
+  skyblock2.魔法研究員:
     default: false
   skyblock2.パン屋:
     default: false

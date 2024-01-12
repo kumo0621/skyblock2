@@ -51,8 +51,8 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  冒険者:
-    name: 冒険者
+  剣士:
+    name: 剣士
     home:
       world: world_the_end
       x: 298
@@ -67,8 +67,8 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  石工:
-    name: 石工
+  魔法使い:
+    name: 魔法使い
     home:
       world: world_the_end
       x: 288
@@ -107,8 +107,8 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  薬剤師:
-    name: 薬剤師
+  魔法研究員:
+    name: 魔法研究員
     home:
       world: world_the_end
       x: 298
