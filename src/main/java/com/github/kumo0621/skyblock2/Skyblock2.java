@@ -254,7 +254,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         // 職業クリア
         if (cmd.getName().equalsIgnoreCase("clearrole")) {
             // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
-            List<Player> players = getTargetPlayer(sender, args, 1);
+            List<Player> players = getTargetPlayer(sender, args, 0);
             if (players == null) return false;
             // コンフィグに職業が存在しない場合のみ処理を続ける
             for (Player player : players) {
