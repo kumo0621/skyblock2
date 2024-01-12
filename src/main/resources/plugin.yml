@@ -8,8 +8,10 @@ depend:
   - LuckPerms
 
 commands:
-  setrole:
-    permission: skyblock2.setrole
+  addrole:
+    permission: skyblock2.addrole
+  clearrole:
+    permission: skyblock2.clearrole
   warp:
     permission: skyblock2.warp
   notion:
@@ -18,7 +20,9 @@ commands:
 permissions:
   skyblock2.admin:
     default: op
-  skyblock2.setrole:
+  skyblock2.addrole:
+    default: op
+  skyblock2.clearrole:
     default: op
   skyblock2.warp:
     default: true

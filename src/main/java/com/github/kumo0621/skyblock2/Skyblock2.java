@@ -3,6 +3,7 @@ package com.github.kumo0621.skyblock2;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.ComponentSerializer;
 import net.luckperms.api.LuckPerms;
+import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
 import net.milkbowl.vault.economy.Economy;
@@ -31,6 +32,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class Skyblock2 extends JavaPlugin implements Listener {
@@ -222,34 +224,40 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         // 職業設定コマンドの処理
-        if (cmd.getName().equalsIgnoreCase("setrole")) {
+        if (cmd.getName().equalsIgnoreCase("addrole")) {
             // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
             List<Player> players = getTargetPlayer(sender, args, 1);
             if (players == null) return false;
-
             // コンフィグに職業が存在しない場合のみ処理を続ける
             for (Player player : players) {
-                if (neetTeam.hasPlayer(player) || sender.hasPermission("skyblock2.admin")) {
-                    if (args.length >= 1) {
-                        String role = args[0];
-                        if (setRole(player, role)) {
-                            player.sendMessage(ChatColor.GREEN + "職業が設定されました: " + role);
-                            return true;
+                getGroup(player).thenAccept(groups -> {
+                    if (groups.size() < 2 || sender.hasPermission("skyblock2.admin")) {
+                        if (args.length >= 1) {
+                            String role = args[0];
+                            List<String> newGroups = new ArrayList<>();
+                            newGroups.addAll(groups);
+                            newGroups.add(role);
+                            if (setGroup(player, newGroups)) {
+                                player.sendMessage(ChatColor.GREEN + "職業が設定されました: " + role);
+                                return true;
+                            } else {
+                                player.sendMessage(ChatColor.RED + "無効な職業です。");
+                                return false;
+                            }
                         } else {
-                            player.sendMessage(ChatColor.RED + "無効な職業です。");
+                            player.sendMessage(ChatColor.RED + "使用方法: /setrole <職業名>");
                             return false;
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "使用方法: /setrole <職業名>");
-                        return false;
+                        player.sendMessage(ChatColor.RED + "あなたは既に職業を持っています。");
+                        return true;
                     }
-                } else {
-                    player.sendMessage(ChatColor.RED + "あなたは既に職業を持っています。");
-                    return true;
-                }
+                });
             }
         }
+        if (cmd.getName().equalsIgnoreCase("clearrole")) {
 
+        }
         // テレポートコマンドの処理
         if (cmd.getName().equalsIgnoreCase("warp") && sender instanceof Player) {
             // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
@@ -289,6 +297,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         return false;
     }
 
+
     /**
      * コマンド実行者とコマンドの引数から、対象のプレイヤーを取得する
      *
@@ -327,16 +336,12 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
      * @param role   職業
      * @return 設定に成功したかどうか
      */
-    public boolean setRole(Player player, String role) {
+    public boolean setTeam(Player player, String role) {
         // 引数の文字列のチームを取得
         Team team = board.getTeam(role);
         // チームが存在すればプレイヤーを追加
         if (team != null) {
             team.addEntry(player.getName());
-
-            // LuckPermsのグループを設定
-            setGroup(player, role);
-
             return true;
         }
         return false;
@@ -346,14 +351,14 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
      * LuckPermsのグループを設定
      *
      * @param player プレイヤー
-     * @param role   職業
+     * @param roles  職業
      */
-    private void setGroup(Player player, String role) {
+    private CompletableFuture<Boolean> setGroup(Player player, List<String> roles) {
         // プレイヤー情報を読み込み
-        luckPerms.getUserManager().loadUser(player.getUniqueId()).thenAccept(user -> {
+        luckPerms.getUserManager().loadUser(player.getUniqueId()).thenApply(user -> {
             // プレイヤーに職業のグループを付与
             for (String groupName : teams) {
-                if (groupName.equals(role)) {
+                if (roles.contains(groupName)) {
                     // プレイヤーが所属しているグループに職業のグループを追加
                     user.data().add(InheritanceNode.builder(groupName).value(true).build());
                 } else {
@@ -363,7 +368,18 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             }
             // プレイヤー情報を保存
             luckPerms.getUserManager().saveUser(user);
+            return true;
         });
+    }
+
+    private CompletableFuture<List<String>> getGroup(Player player) {
+        // プレイヤー情報を読み込み
+        return luckPerms.getUserManager().loadUser(player.getUniqueId())
+                .thenApply(user -> user.data().toCollection().stream()
+                        .filter(node -> node.getValue() && teams.contains(node.getKey()))
+                        .map(Node::getKey)
+                        .collect(Collectors.toList()));
+
     }
 
     @EventHandler
