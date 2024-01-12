@@ -14,6 +14,8 @@ commands:
     permission: skyblock2.clearrole
   warp:
     permission: skyblock2.warp
+  jobchange:
+    permission: skyblock2.jobchange
   notion:
     permission: skyblock2.notion
 
@@ -25,6 +27,8 @@ permissions:
   skyblock2.clearrole:
     default: op
   skyblock2.warp:
+    default: true
+  skyblock2.jobchange:
     default: true
   skyblock2.notion:
     default: true

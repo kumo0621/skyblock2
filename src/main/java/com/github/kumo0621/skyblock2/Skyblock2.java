@@ -296,6 +296,36 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
             }
         }
 
+        // ジョブチェンジコマンドの処理
+        if (cmd.getName().equalsIgnoreCase("jobchange") && sender instanceof Player) {
+            // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
+            List<Player> players = getTargetPlayer(sender, args, 0);
+            if (players == null) return false;
+
+            for (Player player : players) {
+                Team team = board.getPlayerTeam(player);
+                // LuckPermsのグループを取得
+                getGroup(player).thenAccept(groups -> {
+                    // グループ数が0個はエラー
+                    if (groups.size() == 0) {
+                        player.sendMessage(ChatColor.RED + "あなたは職業を持っていません。");
+                        return;
+                    }
+
+                    // 自分のチームの次の職業を取得
+                    int index = groups.indexOf(team.getName());
+                    if (index == -1) index = 0;
+                    index = (index + 1) % groups.size();
+
+                    // チームを設定
+                    String role = groups.get(index);
+                    setTeam(player, role);
+                    // チャットにメッセージを表示
+                    player.sendMessage(ChatColor.GREEN + "メイン職業が変更されました: " + role);
+                });
+            }
+        }
+
         // Notionコマンドの処理
         if (cmd.getName().equalsIgnoreCase("notion") && sender instanceof Player) {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + sender.getName() + " " + getConfig().getString("notion"));
@@ -414,26 +444,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     player.performCommand("notion");
                 } else {
                     // コンパスを左クリックしたときの処理
-                    Team team = board.getPlayerTeam(player);
-                    // LuckPermsのグループを取得
-                    getGroup(player).thenAccept(groups -> {
-                        // グループ数が0個はエラー
-                        if (groups.size() == 0) {
-                            player.sendMessage(ChatColor.RED + "あなたは職業を持っていません。");
-                            return;
-                        }
-
-                        // 自分のチームの次の職業を取得
-                        int index = groups.indexOf(team.getName());
-                        if (index == -1) index = 0;
-                        index = (index + 1) % groups.size();
-
-                        // チームを設定
-                        String role = groups.get(index);
-                        setTeam(player, role);
-                        // チャットにメッセージを表示
-                        player.sendMessage(ChatColor.GREEN + "メイン職業が変更されました: " + role);
-                    });
+                    player.performCommand("jobchange");
                 }
             }
         }
