@@ -266,7 +266,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
 
         // テレポートコマンドの処理
-        if (cmd.getName().equalsIgnoreCase("warp") && sender instanceof Player) {
+        if (cmd.getName().equalsIgnoreCase("warp")) {
             // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
             List<Player> players = getTargetPlayer(sender, args, 0);
             if (players == null) return false;
@@ -297,7 +297,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
 
         // ジョブチェンジコマンドの処理
-        if (cmd.getName().equalsIgnoreCase("jobchange") && sender instanceof Player) {
+        if (cmd.getName().equalsIgnoreCase("jobchange")) {
             // コマンド実行者とコマンドの引数から、対象のプレイヤーを取得
             List<Player> players = getTargetPlayer(sender, args, 0);
             if (players == null) return false;
@@ -327,7 +327,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
 
         // Notionコマンドの処理
-        if (cmd.getName().equalsIgnoreCase("notion") && sender instanceof Player) {
+        if (cmd.getName().equalsIgnoreCase("notion")) {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + sender.getName() + " " + getConfig().getString("notion"));
         }
 
