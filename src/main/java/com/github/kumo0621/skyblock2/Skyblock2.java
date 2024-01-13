@@ -371,17 +371,16 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
      *
      * @param player プレイヤー
      * @param role   職業
-     * @return 設定に成功したかどうか
      */
-    public boolean setTeam(Player player, String role) {
-        // 引数の文字列のチームを取得
-        Team team = board.getTeam(role);
-        // チームが存在すればプレイヤーを追加
-        if (team != null) {
-            team.addEntry(player.getName());
-            return true;
-        }
-        return false;
+    public void setTeam(Player player, String role) {
+        Bukkit.getScheduler().runTask(this, () -> {
+            // 引数の文字列のチームを取得
+            Team team = board.getTeam(role);
+            // チームが存在すればプレイヤーを追加
+            if (team != null) {
+                team.addEntry(player.getName());
+            }
+        });
     }
 
     /**
