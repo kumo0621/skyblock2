@@ -4,17 +4,19 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -27,6 +29,8 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,9 +45,11 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     private List<String> teams;
     private Team defaultTeam;
     private Team neetTeam;
-
+    private File playerDataFile;
+    private FileConfiguration playerData;
     @Override
     public void onEnable() {
+        createPlayerDataFile();
         // LuckPermsの初期化
         RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider == null) {
@@ -94,6 +100,69 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                 }
             }
         }, 0L, 20L * 60); // 20 ticks * 60 = 1分ごと
+    }
+
+    @Override
+    public void onDisable() {
+        // プラグインが無効になったときの処理
+        savePlayerData();
+    }
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        // ブロックが置かれたときのイベント
+        if (event.getBlockPlaced().getType() == Material.COBBLESTONE) { // 丸い石を置いた場合
+            String playerName = String.valueOf(event.getPlayer().getUniqueId());
+            int count = playerData.getInt(playerName + ".count", 0); // 現在のカウントを取得
+            playerData.set(playerName + ".count", count + 1); // カウントを1増やす
+            savePlayerData();
+        }
+    }
+    @EventHandler
+    public void onGlassBreak(BlockBreakEvent event) {
+        // ブロックが壊されたときのイベント
+        if (event.getBlock().getType() == Material.COBBLESTONE) { // 丸い石を壊した場合
+            String playerName = String.valueOf(event.getPlayer().getUniqueId());
+            int count = playerData.getInt(playerName + ".count", 0); // 現在のカウントを取得
+            if (count > 0) { // カウントが0より大きい場合のみ減らす
+                playerData.set(playerName + ".count", count - 1); // カウントを1減らす
+                savePlayerData();
+            }
+        }
+    }
+    private void createPlayerDataFile() {
+        playerDataFile = new File(getDataFolder(), "playerData.yml");
+        if (!playerDataFile.exists()) {
+            playerDataFile.getParentFile().mkdirs();
+            saveResource("playerData.yml", false);
+        }
+        playerData = YamlConfiguration.loadConfiguration(playerDataFile);
+    }
+    public int getPlayerData(String playerName) {
+        return playerData.getInt(playerName + ".count", 0);
+    }
+    private void savePlayerData() {
+        try {
+            playerData.save(playerDataFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //ツールでの破壊系
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        Material toolType = event.getPlayer().getInventory().getItemInMainHand().getType();
+        GameMode gameMode = event.getPlayer().getGameMode();
+        if (gameMode == GameMode.CREATIVE) {
+            return;
+        }
+
+        if (block.getType() == Material.SANDSTONE) {
+            event.setCancelled(true);
+
+            return;
+        }
     }
 
     /**
@@ -238,6 +307,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                             setGroup(player, newGroups).thenAccept(result -> {
                                 if (result) {
                                     player.sendMessage(ChatColor.GREEN + "あなたの職業が追加されました: " + role);
+
                                 } else {
                                     player.sendMessage(ChatColor.RED + "無効な職業です。");
                                 }
@@ -444,7 +514,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
                     player.performCommand("notion");
                 } else {
                     // コンパスを左クリックしたときの処理
-                    player.performCommand("jobchange");
+                    //player.performCommand("jobchange");
                 }
             }
         }
@@ -453,13 +523,25 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-
+        String playerName = String.valueOf(player.getUniqueId());
         // 罰金徴収
-        int penalty = getConfig().getInt("deathPenalty");
+        int penalty = getPlayerData(playerName)*10;
         if (econ.withdrawPlayer(player, penalty).transactionSuccess()) {
-            player.sendMessage(ChatColor.RED + "死亡により￥" + penalty + "徴収されました。");
+            player.sendMessage(ChatColor.RED + "死亡により土地の税金￥" + penalty + "徴収されました。");
         } else {
             player.sendMessage(ChatColor.RED + "死亡しましたが、お金が足りないため徴収されませんでした。");
+        }
+    }
+    @EventHandler
+    public void onCobolStone(BlockPlaceEvent event) {
+        // ブロックが置かれるイベントを取得
+        Block blockAbove = event.getBlockAgainst(); // 置かれようとしているブロックの上のブロック
+        Block blockPlaced = event.getBlockPlaced(); // 置かれようとしているブロック
+
+        // もし置かれようとしているブロックの下が草ブロックで、置かれようとしているブロックが丸い石ではない場合
+        if (blockAbove.getType() == Material.SANDSTONE && blockPlaced.getType() != Material.COBBLESTONE) {
+            event.setCancelled(true); // イベントをキャンセルし、ブロックの設置を禁止する
+            event.getPlayer().sendMessage("コンクリの上には丸い石しか置けません。");
         }
     }
 }

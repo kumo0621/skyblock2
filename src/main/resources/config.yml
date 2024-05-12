@@ -1,8 +1,8 @@
 deathPenalty: 2000
 defaultRole: tutorial
-neetRole: ニート
+neetRole: neet
 notion: '{"text":"[クリックして説明書(Notion)を確認]","color":"gold","clickEvent":{"action":"open_url","value":"https://bit.ly/eco-tutorial"}}'
-maxRole: 2
+maxRole: 1
 roles:
   tutorial:
     name: チュートリアル
@@ -12,7 +12,7 @@ roles:
       y: 155
       z: -237
     color: AQUA
-  ニート:
+  neet:
     name: ニート
     home:
       world: world_the_end
@@ -20,7 +20,7 @@ roles:
       y: 103
       z: 94
     color: DARK_GRAY
-  漁師:
+  ryousi:
     name: 漁師
     home:
       world: world_the_end
@@ -36,8 +36,8 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  パン屋:
-    name: パン屋
+  nougyou:
+    name: 農業
     home:
       world: world_the_end
       x: 298
@@ -52,8 +52,8 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  剣士:
-    name: 剣士
+  isiku:
+    name: 石工
     home:
       world: world_the_end
       x: 298
@@ -68,8 +68,8 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  魔法使い:
-    name: 魔法使い
+  kikori:
+    name: 木こり
     home:
       world: world_the_end
       x: 298
@@ -84,7 +84,7 @@ roles:
         ambient: true
         has-particles: false
         has-icon: true
-  鍛冶屋:
+  kaziya:
     name: 鍛冶屋
     home:
       world: world_the_end
@@ -92,7 +92,7 @@ roles:
       y: 158
       z: 30
     color: GRAY
-  裁縫師:
+  saihousi:
     name: 裁縫師
     home:
       world: world_the_end
