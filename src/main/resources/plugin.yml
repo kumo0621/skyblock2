@@ -8,14 +8,10 @@ depend:
   - LuckPerms
 
 commands:
-  addrole:
-    permission: skyblock2.addrole
-  clearrole:
-    permission: skyblock2.clearrole
+  setrole:
+    permission: skyblock2.setrole
   warp:
     permission: skyblock2.warp
-  jobchange:
-    permission: skyblock2.jobchange
   notion:
     permission: skyblock2.notion
 
