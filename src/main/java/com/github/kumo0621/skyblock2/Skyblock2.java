@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -42,6 +43,7 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
     private List<String> teams;
     private Team defaultTeam;
     private Team neetTeam;
+    private DeathPenaltyCalculator calculator;
 
     @Override
     public void onEnable() {
@@ -59,6 +61,9 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         // イベントリスナーの登録
         getServer().getPluginManager().registerEvents(this, this);
+
+        // デスペナルティ計算機の初期化
+        calculator = new DeathPenaltyCalculator(config);
 
         // スコアボードマネージャーとボードの初期化
         manager = Bukkit.getScoreboardManager();
@@ -392,12 +397,30 @@ public final class Skyblock2 extends JavaPlugin implements Listener {
         }
     }
 
+    private static class DeathPenaltyCalculator {
+        private final double base;
+        private final double percentage;
+        private final double max;
+
+        public DeathPenaltyCalculator(Configuration config) {
+            this.base = config.getDouble("deathPenalty.base");
+            this.percentage = config.getDouble("deathPenalty.percentage");
+            this.max = config.getDouble("deathPenalty.max");
+        }
+
+        public double calculate(double balance) {
+            // y = min(base + percentage * (x - base), max) でデスペナルティが計算される
+            double penalty = base + percentage * (balance - base);
+            return Math.min(penalty, max);
+        }
+    }
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
         // 罰金徴収
-        int penalty = getConfig().getInt("deathPenalty");
+        double penalty = calculator.calculate(econ.getBalance(player));
         if (econ.withdrawPlayer(player, penalty).transactionSuccess()) {
             player.sendMessage(ChatColor.RED + "死亡により￥" + penalty + "徴収されました。");
         } else {

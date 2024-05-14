@@ -1,4 +1,8 @@
-deathPenalty: 2000
+deathPenalty:
+  # y = min(base + percentage * (x - base), max) でデスペナルティが計算される
+  base: 200 # デスペナルティの基本値
+  percentage: 0.01 # デスペナルティの割合
+  max: 2000 # デスペナルティの最大値
 defaultRole: tutorial
 neetRole: neet
 notion: '{"text":"[クリックして説明書(Notion)を確認]","color":"gold","clickEvent":{"action":"open_url","value":"https://bit.ly/eco-tutorial"}}'
